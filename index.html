@@ -749,6 +749,8 @@ button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
   // ── 전체 화면 + 화면 꺼짐 방지 ──
   var fullBtn = document.getElementById('fullBtn');
+  // 안드로이드 앱에서는 이미 전체 화면이므로 버튼을 숨긴다
+  if (/ExamBoardApp/.test(navigator.userAgent)) fullBtn.hidden = true;
   fullBtn.addEventListener('click', function () {
     try {
       if (document.fullscreenElement) document.exitFullscreen();

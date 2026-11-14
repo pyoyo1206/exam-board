@@ -1,0 +1,59 @@
+name: APK 빌드
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: 페이지를 앱 안에 넣기 (오프라인 대비)
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp index.html android/app/src/main/assets/index.html
+
+      - name: 서명 키 준비
+        run: |
+          if [ ! -f android/app/debug.keystore ]; then
+            keytool -genkeypair -v -keystore android/app/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: APK 빌드
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon
+
+      - name: APK 이름 정리
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk exam-board.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exam-board-apk
+          path: exam-board.apk
+
+      - name: 다운로드용 릴리스 갱신
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest exam-board.apk \
+            --title "시험 안내 칠판 APK" \
+            --notes "스마트 칠판에서 exam-board.apk 를 내려받아 설치하세요."

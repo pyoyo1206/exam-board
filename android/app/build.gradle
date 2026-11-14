@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.pyoyo1206.examboard'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'io.github.pyoyo1206.examboard'
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // 매번 같은 키로 서명해야 덮어쓰기 설치(업데이트)가 된다
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+}
